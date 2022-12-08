@@ -23,5 +23,5 @@ JSON_LIB_DEPENDS_SUBMODULES=" \
     git submodule update tools/build tools/boost_install
     git submodule update $JSON_LIB_DEPENDS_SUBMODULES
     ./bootstrap.sh
-    ./b2 --build-dir=build --prefix=install install
+    ./b2 --build-dir=build --prefix=install link=static install
 )
