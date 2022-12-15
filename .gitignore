@@ -53,3 +53,9 @@
 
 # Misc
 /.clang-format
+
+# CMake
+**/CMakeCache.txt
+**/CMakeFiles/
+/_deps/
+*.cmake
