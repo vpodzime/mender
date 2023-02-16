@@ -21,6 +21,7 @@ using namespace std;
 #include <common/expected.hpp>
 #include <common/json.hpp>
 #include <common/log.hpp>
+#include <common/conf/paths.hpp>
 
 using namespace mender::common;
 
@@ -85,5 +86,7 @@ int main() {
 		std::cout << "Got (un)expected error: '" << ex_s_err.error().message << "'" << std::endl;
 	}
 
+	std::cout << "Default conf dir is: " << mender::common::conf::paths::DefaultConfFile
+			  << std::endl;
 	return 0;
 }

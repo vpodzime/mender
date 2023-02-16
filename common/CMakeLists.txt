@@ -138,3 +138,13 @@ target_include_directories(identity_parser_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(identity_parser_test)
 add_dependencies(check identity_parser_test)
 
+
+add_library(common_conf STATIC conf/conf.cpp conf/paths.cpp)
+target_link_libraries(common_conf PUBLIC crossplatform_compiler_flags)
+target_include_directories(common_conf PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+
+add_executable(conf_test EXCLUDE_FROM_ALL conf_test.cpp)
+target_link_libraries(conf_test PUBLIC common_conf GTest::gtest_main gmock)
+target_include_directories(conf_test PRIVATE ${CMAKE_SOURCE_DIR})
+gtest_discover_tests(conf_test)
+add_dependencies(check conf_test)
