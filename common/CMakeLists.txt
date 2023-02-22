@@ -139,9 +139,13 @@ gtest_discover_tests(identity_parser_test)
 add_dependencies(check identity_parser_test)
 
 
-add_library(common_conf STATIC conf/conf.cpp conf/paths.cpp)
-target_link_libraries(common_conf PUBLIC crossplatform_compiler_flags)
+add_library(common_conf STATIC conf/conf.cpp)
+target_link_libraries(common_conf INTERFACE crossplatform_compiler_flags)
 target_include_directories(common_conf PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+if(MENDER_USE_BOOST_FS)
+  target_sources(common_conf PRIVATE conf/platform/boost_filesystem/paths.cpp)
+  target_link_libraries(common_conf PRIVATE platform_compiler_flags)
+endif()
 
 add_executable(conf_test EXCLUDE_FROM_ALL conf_test.cpp)
 target_link_libraries(conf_test PUBLIC common_conf GTest::gtest_main gmock)
