@@ -12,10 +12,20 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 
-#include <memory>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include <common/conf.hpp>
 
 using namespace std;
 
-int main() {
+int main(int argc, char *argv[]) {
+	mender::common::conf::MenderConfig config;
+	if (argc > 1) {
+		vector<string> args(argv + 1, argv + argc);
+		auto err = config.ProcessCmdlineArgs(args);
+	}
+
 	return 0;
 }

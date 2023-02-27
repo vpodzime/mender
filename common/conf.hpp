@@ -18,6 +18,8 @@
 #include <string>
 #include <vector>
 #include <unordered_set>
+#include <common/config_parser.hpp>
+#include <common/conf/paths.hpp>
 
 namespace mender {
 namespace common {
@@ -25,6 +27,7 @@ namespace conf {
 
 using namespace std;
 namespace error = mender::common::error;
+namespace cfg_parser = mender::common::config_parser;
 
 enum ConfigErrorCode {
 	NoError = 0,
@@ -63,6 +66,13 @@ private:
 	OptsSet opts_wo_value_;
 	size_t pos_ = 0;
 	bool past_double_dash_ = false;
+};
+
+class MenderConfig : public cfg_parser::MenderConfigFromFile {
+public:
+	string data_store_dir = paths::DefaultDataStore;
+
+	error::Error ProcessCmdlineArgs(const vector<string> &args);
 };
 
 } // namespace conf

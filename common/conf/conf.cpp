@@ -19,6 +19,8 @@
 
 #include <common/error.hpp>
 #include <common/expected.hpp>
+#include <common/conf/paths.hpp>
+#include <common/log.hpp>
 
 namespace mender {
 namespace common {
@@ -27,6 +29,7 @@ namespace conf {
 using namespace std;
 namespace error = mender::common::error;
 namespace expected = mender::common::expected;
+namespace log = mender::common::log;
 
 const ConfigErrorCategoryClass ConfigErrorCategory;
 
@@ -123,6 +126,69 @@ ExpectedOptionValue CmdlineOptionsIterator::Next() {
 	}
 
 	return ExpectedOptionValue({std::move(option), std::move(value)});
+}
+
+error::Error MenderConfig::ProcessCmdlineArgs(const vector<string> &args) {
+	string config_path = paths::DefaultConfFile;
+	string fallback_config_path = paths::DefaultFallbackConfFile;
+	string log_file = "";
+	string log_level = log::ToStringLogLevel(log::kDefaultLogLevel);
+
+	CmdlineOptionsIterator opts_iter(
+		args,
+		{"--config",
+		 "-c",
+		 "--fallback-config",
+		 "-b",
+		 "--data",
+		 "-d",
+		 "--log-file",
+		 "-L",
+		 "--log-level",
+		 "-l"},
+		{});
+	auto ex_opt_val = opts_iter.Next();
+	while (ex_opt_val && ((ex_opt_val.value().option != "") || (ex_opt_val.value().value != ""))) {
+		auto opt_val = ex_opt_val.value();
+		if ((opt_val.option == "--config") || (opt_val.option == "-c")) {
+			config_path = opt_val.value;
+		} else if ((opt_val.option == "--fallback-config") || (opt_val.option == "-b")) {
+			fallback_config_path = opt_val.value;
+		} else if ((opt_val.option == "--data") || (opt_val.option == "-d")) {
+			data_store_dir = opt_val.value;
+		} else if ((opt_val.option == "--log-file") || (opt_val.option == "-L")) {
+			log_file = opt_val.value;
+		} else if ((opt_val.option == "--log-level") || (opt_val.option == "-l")) {
+			log_level = opt_val.value;
+		}
+	}
+	if (!ex_opt_val) {
+		return ex_opt_val.error();
+	}
+
+	if (log_file != "") {
+		auto err = log::SetupFileLogging(log_file, true);
+		if (err) {
+			return err;
+		}
+	}
+
+	auto ex_log_level = log::StringToLogLevel(log_level);
+	if (!ex_log_level) {
+		return ex_log_level.error();
+	}
+	SetLevel(ex_log_level.value());
+
+	auto ret = this->LoadFile(fallback_config_path);
+	if (!ret || !this->ValidateConfig()) {
+		this->Reset();
+	}
+	ret = this->LoadFile(config_path);
+	if (!ret || !this->ValidateConfig()) {
+		this->Reset();
+	}
+
+	return error::NoError;
 }
 
 } // namespace conf
