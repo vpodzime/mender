@@ -119,15 +119,44 @@ add_library(common_key_value_database STATIC
   key_value_database.cpp
 )
 target_compile_options(common_key_value_database PRIVATE ${PLATFORM_SPECIFIC_COMPILE_OPTIONS})
+target_link_libraries(common_key_value_database PUBLIC
+  common
+  common_log
+)
 if(MENDER_USE_LMDB)
+  include(CheckIncludeFileCXX)
+  check_include_file_cxx("lmdb.h" HAVE_lmdb_h)
+  include(ExternalProject)
+  if (NOT HAVE_lmdb_h)
+    set(LMDB_CFLAGS "${CMAKE_C_FLAGS} -V${CMAKE_C_COMPILER_TARGET} -Wc,-isysroot,${CMAKE_SYSROOT}")
+    set(LMDB_CPPFLAGS "-DMDB_DEBUG=1")
+    ExternalProject_Add(liblmdb
+      GIT_REPOSITORY https://github.com/LMDB/lmdb.git
+      GIT_TAG LMDB_0.9.31
+      CONFIGURE_COMMAND ""
+      BUILD_IN_SOURCE true
+      BUILD_COMMAND make CC=${CMAKE_C_COMPILER} CFLAGS=${LMDB_CFLAGS} AR=${CMAKE_AR} CPPFLAGS=${LMDB_CPPFLAGS} -C libraries/liblmdb liblmdb.a
+      INSTALL_COMMAND ""
+    )
+    ExternalProject_Get_Property(liblmdb SOURCE_DIR)
+    set(LMDB_INCLUDE_DIR "${SOURCE_DIR}")
+    string(APPEND LMDB_INCLUDE_DIR "/libraries/liblmdb")
+    set(LMDB_STATIC_LIB "${SOURCE_DIR}")
+    string(APPEND LMDB_STATIC_LIB "/libraries/liblmdb/liblmdb.a")
+    target_include_directories(common_key_value_database PRIVATE ${LMDB_INCLUDE_DIR})
+    target_link_directories(common_key_value_database BEFORE PRIVATE "${LMDB_INCLUDE_DIR}")
+    target_link_libraries(common_key_value_database PRIVATE
+      "${LMDB_STATIC_LIB}"
+    )
+    add_dependencies(common_key_value_database liblmdb)
+  else()
+    target_link_libraries(common_key_value_database PUBLIC
+      lmdb
+    )
+  endif()
   target_sources(common_key_value_database PRIVATE key_value_database/platform/lmdb/lmdb.cpp)
   # Note: Use SYSTEM include style, since lmdbxx triggers some of our warnings.
   target_include_directories(common_key_value_database SYSTEM PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor/lmdbxx/include)
-  target_link_libraries(common_key_value_database PUBLIC
-    lmdb
-    common
-    common_log
-  )
 else()
   target_sources(common_key_value_database PRIVATE key_value_database/platform/filedb/filedb.cpp)
 endif()

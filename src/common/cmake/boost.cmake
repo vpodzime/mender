@@ -1,17 +1,18 @@
 # Code to import Boost correctly, either from the system, or from a package.
 
-find_package(Boost 1.74 COMPONENTS log)
+# find_package(Boost 1.74 COMPONENTS log)
 
 option(MENDER_DOWNLOAD_BOOST "Download Boost if it is not found (Default: OFF)" OFF)
 
-if(NOT MENDER_DOWNLOAD_BOOST AND NOT ${Boost_FOUND})
-  message(FATAL_ERROR
-    "Boost not found. Either make sure a recent enough Boost development package is installed (libboost-dev), or use `-D MENDER_DOWNLOAD_BOOST=ON`."
-  )
-endif()
+# if(NOT MENDER_DOWNLOAD_BOOST AND NOT ${Boost_FOUND})
+#   message(FATAL_ERROR
+#     "Boost not found. Either make sure a recent enough Boost development package is installed (libboost-dev), or use `-D MENDER_DOWNLOAD_BOOST=ON`."
+#   )
+# endif()
 
-if(MENDER_DOWNLOAD_BOOST AND NOT ${Boost_FOUND})
+if(MENDER_DOWNLOAD_BOOST)
   include(FetchContent)
+  # set(BOOST_CONTEXT_ARCHITECTURE "arm64")
   FetchContent_Declare(
     Boost
     # SYSTEM is only supported in CMake 3.25 and later, but is necessary in order to exclude Boost

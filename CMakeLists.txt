@@ -9,6 +9,11 @@ project(mender)
 add_subdirectory(support)
 add_subdirectory(Documentation)
 
+set(CMAKE_SYSTEM_PROCESSOR "aarch64")
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(can_use_assembler TRUE)
+enable_language(CXX C ASM)
+
 if(NOT "${MENDER_NO_BUILD}" STREQUAL "1")
   include(main.cmake)
 endif()
