@@ -562,6 +562,44 @@ error::Error WriteStringIntoOfstream(ofstream &os, const string &data) {
 	return error::NoError;
 }
 
+error::Error ReadFileContents(const string &fpath, vector<uint8_t> &data) {
+	auto ex_file_stream = OpenIfstream(fpath);
+	if (!ex_file_stream) {
+		return ex_file_stream.error();
+	}
+	auto &file_stream = ex_file_stream.value();
+	file_stream.seekg(0, std::ios::end);
+	const size_t length = file_stream.tellg();
+	file_stream.seekg(0, std::ios::beg);
+
+	data.resize(length);
+	StreamReader file_reader {file_stream};
+	size_t n_read = 0;
+	while (n_read != length) {
+		auto ex_n_read = file_reader.Read(data.begin() + n_read, data.end());
+		if (!ex_n_read) {
+			return ex_n_read.error();
+		}
+		n_read += ex_n_read.value();
+	}
+	return error::NoError;
+}
+
+error::Error WriteDataIntoFile(const string &fpath, const vector<uint8_t> &data) {
+	auto ex_file_stream = OpenOfstream(fpath);
+	if (!ex_file_stream) {
+		return ex_file_stream.error();
+	}
+	auto &file_stream = ex_file_stream.value();
+	StreamWriter file_writer {file_stream};
+	auto ex_n_written = file_writer.Write(data.cbegin(), data.cend());
+	if (!ex_n_written) {
+		return ex_n_written.error();
+	}
+	return error::NoError;
+}
+
+
 ExpectedSize StreamReader::Read(vector<uint8_t>::iterator start, vector<uint8_t>::iterator end) {
 	is_->read(reinterpret_cast<char *>(&*start), end - start);
 	if (!is_) {

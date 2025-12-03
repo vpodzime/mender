@@ -128,6 +128,8 @@ if(MENDER_USE_LMDB)
     common
     common_log
   )
+else()
+  target_sources(common_key_value_database PRIVATE key_value_database/platform/filedb/filedb.cpp)
 endif()
 
 add_library(common_events STATIC

@@ -400,6 +400,8 @@ public:
 };
 
 error::Error WriteStringIntoOfstream(ofstream &os, const string &data);
+error::Error ReadFileContents(const string &fpath, vector<uint8_t> &data);
+error::Error WriteDataIntoFile(const string &fpath, const vector<uint8_t> &data);
 
 expected::ExpectedSize FileSize(const string &path);
 
